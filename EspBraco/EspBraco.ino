@@ -4,10 +4,12 @@
 #include "Constants.h"
 
 /*
-#define WIFI_SSID "UFRN_CERES"
-#define WIFI_PASSWORD "UFRN@1306"
-#define FIREBASE_HOST "esp8266-90991.firebaseio.com"
-#define FIREBASE_AUTH ""
+ * SDA 4 -> D2 || SCL 5 -> D1
+ *
+ * #define WIFI_SSID "UFRN_CERES"
+ * #define WIFI_PASSWORD "UFRN@1306"
+ * #define FIREBASE_HOST "esp8266-90991.firebaseio.com"
+ * #define FIREBASE_AUTH ""
 */
 
 meArm arm;
