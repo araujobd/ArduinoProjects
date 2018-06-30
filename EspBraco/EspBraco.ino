@@ -1,10 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <FirebaseArduino.h>
+#include <meArm_Adafruit.h>
 #include "Constants.h"
-
-//#include "meArm_Adafruit.h"
-//#include <Adafruit_PWMServoDriver.h>
-//#include <Wire.h>
 
 /*
 #define WIFI_SSID "UFRN_CERES"
@@ -13,7 +10,12 @@
 #define FIREBASE_AUTH ""
 */
 
-//meArm arm;
+meArm arm;
+
+int x = 0;
+int y = 180;
+int z = 100;
+boolean openGripper = true;
 
 void setupWifi()
 {
@@ -22,14 +24,14 @@ void setupWifi()
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
   Serial.println("");
-  Serial.println("WiFi connected");  
+  Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 }
@@ -37,37 +39,40 @@ void setupWifi()
 void setupFirebase()
 {
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.setInt("led", 0);
   Serial.println(Firebase.success());
-  //Firebase.stream("meArm");
-  Firebase.stream("led");
+  Firebase.stream("meArm");
 }
 
 void setupBraco()
 {
-  //arm.begin();
-  //arm.goToPoint(0, 150, 80);
+  arm.begin();
+  arm.gotoPoint(x, y, z);
+  arm.closeGripper();
 }
 
 void handleEvent(FirebaseObject firebase) {
-  String eventType = firebase.getString("type");
-  Serial.println(firebase.getString("path"));
-  eventType.toLowerCase();
-  //if (eventType == "put") {
-    Serial.print("LED: ");
-    Serial.print(Firebase.getInt("led"));
-    digitalWrite(3, LOW);
-    //int x = firebase.getInt("x");
-    //int y = firebase.getInt("y");
-    //int z = firebase.getInt("z");
-    //arm.goToPoint(x, y, z);
-  //  }
-}
+    if (Firebase.getBool("meArm/openGripper") != openGripper) {
+      openGripper = !openGripper;
+      if (openGripper)
+        Serial.println("Abrir Garra");
+        //arm.openGripper();
+      else
+        Serial.println("Fechar Garra");
+        //arm.closeGripper();
+    } else {
+      x = Firebase.getInt("meArm/position/x");
+      y = Firebase.getInt("meArm/position/y");
+      z = Firebase.getInt("meArm/position/z");
+      Serial.print("arm.gotoPoint(");
+      Serial.print(x);
+      Serial.print(", ");
+      Serial.print(y);
+      Serial.print(", ");
+      Serial.print(z);
+      Serial.println(");");
 
-void updatePosition() {
-//  Firebase.setInt("meArm/realPosition/x", arm.getX());
-//  Firebase.setInt("meArm/realPosition/y", arm.getY());
-//    Firebase.setInt("meArm/realPosition/z", arm.getZ());
+      //arm.gotoPoint(x, y, z);
+    }
 }
 
 void setup() {
@@ -88,6 +93,5 @@ void loop() {
 
   if (Firebase.available()) {
     handleEvent(Firebase.readEvent());
-    //updatePosition();
   }
 }
